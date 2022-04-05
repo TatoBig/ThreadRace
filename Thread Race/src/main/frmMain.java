@@ -15,7 +15,7 @@ import javax.swing.JLabel;
  * @author migu_
  */
 public class frmMain extends javax.swing.JFrame {
-    
+
     int contador = 1;
     // Procesos
     Proceso hilo1;
@@ -23,6 +23,7 @@ public class frmMain extends javax.swing.JFrame {
     Proceso hilo3;
     // Región Crítica
     int[] regionCritica = new int[3];
+    Monitor monitor = new Monitor();
     int posicion = 0;
 
     /**
@@ -37,8 +38,23 @@ public class frmMain extends javax.swing.JFrame {
         regionCritica[1] = 0;
         regionCritica[2] = 0;
     }
-    
+
+    public class Monitor {
+
+        public synchronized void monitorear(JLabel etiqueta, Integer generado) {
+            etiqueta.setText(String.valueOf(generado));
+            // Región crítica
+            regionCritica[posicion] = generado;
+            String contenidoRC = "[" + String.valueOf(regionCritica[0]) + "]";
+            contenidoRC += "[" + String.valueOf(regionCritica[1]) + "]";
+            contenidoRC += "[" + String.valueOf(regionCritica[2]) + "]";
+            lblRegionCritica.setText(contenidoRC);
+            posicion++;
+        }
+    }
+
     public class Proceso extends Thread {
+
         int numeroAGenerar;
         JLabel miEtiqueta;
         String status;
@@ -47,19 +63,12 @@ public class frmMain extends javax.swing.JFrame {
             numeroAGenerar = 0;
             this.miEtiqueta = etiqueta;
         }
-        
+
         @Override
         public void run() {
             // Operaciones pre región crítica
-            this.numeroAGenerar = (int)(Math.random()* 9 + 1);
-            this.miEtiqueta.setText(String.valueOf(numeroAGenerar));
-            // Región crítica
-            regionCritica[posicion] = this.numeroAGenerar;
-            String contenidoRC = "[" + String.valueOf(regionCritica[0]) + "]";
-            contenidoRC += "[" + String.valueOf(regionCritica[1]) + "]";
-            contenidoRC += "[" + String.valueOf(regionCritica[2]) + "]";
-            lblRegionCritica.setText(contenidoRC);
-            posicion++;
+            this.numeroAGenerar = (int) (Math.random() * 9 + 1);
+            monitor.monitorear(miEtiqueta, numeroAGenerar);
             // Operaciones post región crítica
             System.out.println("Proceso finalizado con status: 0");
         }
